@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPOC — Mở hòm tài liệu</title>
+<style>
+  :root {
+    --bg: #0e0f12;
+    --bg-case: #16181d;
+    --border: #262932;
+    --border-light: #343843;
+    --text: #eceef1;
+    --text-dim: #8a8f9c;
+    --accent: #e8b84b;
+    --accent-dim: #8a6d28;
+    --slot-w: 160px;
+    --slot-gap: 14px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100%;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+
+  .eyebrow {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 32px;
+    letter-spacing: -0.01em;
+  }
+
+  .case-box {
+    background: var(--bg-case);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .reel-viewport {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #0a0b0d;
+    border: 1px solid var(--border);
+  }
+
+  .reel-viewport::before,
+  .reel-viewport::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 90px;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .reel-viewport::before {
+    left: 0;
+    background: linear-gradient(90deg, #0a0b0d 10%, transparent);
+  }
+  .reel-viewport::after {
+    right: 0;
+    background: linear-gradient(270deg, #0a0b0d 10%, transparent);
+  }
+
+  .pointer {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent);
+    transform: translateX(-50%);
+    z-index: 4;
+  }
+  .pointer::before, .pointer::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 0;
+    height: 0;
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+  }
+  .pointer::before { top: -1px; border-top: 9px solid var(--accent); }
+  .pointer::after { bottom: -1px; border-bottom: 9px solid var(--accent); }
+
+  .reel-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--slot-gap);
+    padding: 0 10px;
+    will-change: transform;
+  }
+
+  .slot {
+    flex: 0 0 var(--slot-w);
+    width: var(--slot-w);
+    height: 150px;
+    background: #15171c;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .slot .icon {
+    width: 40px;
+    height: 48px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .slot .icon.docx { background: #1c4ed8; color: #dbe6ff; }
+  .slot .icon.pdf { background: #b8291f; color: #ffe0dd; }
+
+  .slot .name {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .slot.winner {
+    border-color: var(--accent);
+    background: #1d1a10;
+  }
+  .slot.winner .name { color: var(--text); }
+
+  .controls {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  button#open-btn {
+    appearance: none;
+    border: none;
+    background: var(--accent);
+    color: #241a05;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 13px 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+  button#open-btn:hover:not(:disabled) { background: #f0c669; }
+  button#open-btn:active:not(:disabled) { transform: scale(0.97); }
+  button#open-btn:disabled {
+    background: #3a3528;
+    color: #8a8360;
+    cursor: not-allowed;
+  }
+
+  .status {
+    font-size: 13px;
+    color: var(--text-dim);
+    min-height: 18px;
+  }
+
+  .result-panel {
+    margin-top: 24px;
+    background: #15171c;
+    border: 1px solid var(--accent-dim);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: none;
+    align-items: center;
+    gap: 16px;
+  }
+  .result-panel.show { display: flex; }
+
+  .result-panel .icon {
+    width: 44px;
+    height: 52px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .result-panel .icon.docx { background: #1c4ed8; color: #dbe6ff; }
+  .result-panel .icon.pdf { background: #b8291f; color: #ffe0dd; }
+
+  .result-info { flex: 1; min-width: 0; }
+  .result-info .label {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 0 0 4px;
+  }
+  .result-info .filename {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  a.open-link {
+    flex-shrink: 0;
+    appearance: none;
+    text-decoration: none;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 7px;
+  }
+  a.open-link:hover { background: #1f222a; }
+
+  .error-text {
+    color: #e8846b;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reel-track { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">SPOC</p>
+  <h1>Mở hòm tài liệu</h1>
+
+  <div class="case-box">
+    <div class="reel-viewport">
+      <div class="pointer"></div>
+      <div class="reel-track" id="reel-track"></div>
+    </div>
+
+    <div class="controls">
+      <button id="open-btn">Mở hòm</button>
+      <p class="status" id="status-text"></p>
+    </div>
+
+    <div class="result-panel" id="result-panel">
+      <div class="icon" id="result-icon">PDF</div>
+      <div class="result-info">
+        <p class="label">Bạn nhận được</p>
+        <p class="filename" id="result-filename"></p>
+      </div>
+      <a class="open-link" id="result-link" href="#" target="_blank" rel="noopener">Mở file</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxqeSHkjGMUVpUYzWKnsk7epB4zV3VQD0wU3JxA9ZiT-ivc1pcnx5c8SFLuZZNevPz-/exec";
+  const openBtn = document.getElementById("open-btn");
+  const statusText = document.getElementById("status-text");
+  const reelTrack = document.getElementById("reel-track");
+  const reelViewport = document.querySelector(".reel-viewport");
+  const resultPanel = document.getElementById("result-panel");
+  const resultIcon = document.getElementById("result-icon");
+  const resultFilename = document.getElementById("result-filename");
+  const resultLink = document.getElementById("result-link");
+
+  const SLOT_WIDTH = 160;
+  const SLOT_GAP = 14;
+  const SLOT_STEP = SLOT_WIDTH + SLOT_GAP;
+
+  function extOf(name) {
+    const lower = name.toLowerCase();
+    if (lower.endsWith(".pdf")) return "pdf";
+    if (lower.endsWith(".docx")) return "docx";
+    return "docx";
+  }
+
+  function baseName(name) {
+    return name.replace(/\.(docx|pdf)$/i, "");
+  }
+
+  function buildSlot(name, isWinner) {
+    const ext = extOf(name);
+    const div = document.createElement("div");
+    div.className = "slot" + (isWinner ? " winner" : "");
+    div.innerHTML =
+      '<div class="icon ' + ext + '">' + ext.toUpperCase() + '</div>' +
+      '<div class="name">' + escapeHtml(baseName(name)) + '</div>';
+    return div;
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function setStatus(msg, isError) {
+    statusText.textContent = msg;
+    statusText.className = "status" + (isError ? " error-text" : "");
+  }
+  const NOTHING_HERE = "806f239e-0a9f-4e9a-8b07-88835bf8b98c4e990e1edbeb408d962c2ac669d75dff";
+  async function openCase() {
+    openBtn.disabled = true;
+    resultPanel.classList.remove("show");
+    setStatus("Đang tải danh sách...", false);
+    reelTrack.innerHTML = "";
+    reelTrack.style.transition = "none";
+    reelTrack.style.transform = "translateX(0)";
+
+    let data;
+    try {
+      const res = await fetch(GAS_ENDPOINT + "?action=list&token=" + encodeURIComponent(NOTHING_HERE));
+      data = await res.json();
+    } catch (e) {
+      setStatus("Không kết nối được máy chủ. Thử lại sau.", true);
+      openBtn.disabled = false;
+      return;
+    }
+
+    if (data.error) {
+      setStatus(data.error, true);
+      openBtn.disabled = false;
+      return;
+    }
+
+    const items = data.items;
+    const winnerName = data.winnerName;
+    const ticket = data.ticket;
+
+    const REPEAT = 6;
+    const sequence = [];
+    for (let r = 0; r < REPEAT; r++) {
+      for (const it of items) {
+        sequence.push(it.name);
+      }
+    }
+    const WINNER_INDEX = sequence.length - Math.floor(items.length / 2) - 3;
+    sequence[WINNER_INDEX] = winnerName;
+
+    sequence.forEach((name, idx) => {
+      reelTrack.appendChild(buildSlot(name, idx === WINNER_INDEX));
+    });
+
+    const viewportWidth = reelViewport.clientWidth;
+    const targetOffset = (WINNER_INDEX * SLOT_STEP) + (SLOT_WIDTH / 2) - (viewportWidth / 2) + 10;
+
+    setStatus("Đang quay...", false);
+
+    requestAnimationFrame(() => {
+      reelTrack.style.transition = "transform 4.2s cubic-bezier(0.1, 0.65, 0.15, 1)";
+      reelTrack.style.transform = "translateX(-" + targetOffset + "px)";
+    });
+
+    reelTrack.addEventListener("transitionend", async function onDone() {
+      reelTrack.removeEventListener("transitionend", onDone);
+      setStatus("Đang xác nhận phần thưởng...", false);
+
+      let reveal;
+      try {
+        const res2 = await fetch(GAS_ENDPOINT + "?action=reveal&ticket=" + encodeURIComponent(ticket) + "&token=" + encodeURIComponent(NOTHING_HERE));
+        reveal = await res2.json();
+      } catch (e) {
+        setStatus("Không lấy được link file. Thử lại.", true);
+        openBtn.disabled = false;
+        return;
+      }
+
+      if (reveal.error) {
+        setStatus(reveal.error, true);
+        openBtn.disabled = false;
+        return;
+      }
+
+      const ext = extOf(reveal.name);
+      resultIcon.textContent = ext.toUpperCase();
+      resultIcon.className = "icon " + ext;
+      resultFilename.textContent = reveal.name;
+      resultLink.href = reveal.url;
+      resultPanel.classList.add("show");
+
+      setStatus("Mở hòm thành công.", false);
+      openBtn.disabled = false;
+    }, { once: true });
+  }
+
+  openBtn.addEventListener("click", openCase);
+</script>
+</body>
+</html>
