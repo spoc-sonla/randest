@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPOC — Quay số trúng đề</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121820'/%3E%3Crect x='22' y='34' width='56' height='44' rx='6' fill='%23dec989'/%3E%3Crect x='22' y='34' width='56' height='14' rx='6' fill='%23f0dba6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="dns-prefetch" href="https://script.google.com">
+<style>
+  :root {
+    --bg-deep: #15202a;
+    --bg-deep-2: #22313c;
+    --panel: #1b2731;
+    --panel-2: #22303a;
+    --border: #ffffff1f;
+    --border-soft: #ffffff14;
+    --text: #e7ebee;
+    --text-dim: #9fabb4;
+    --text-dimmer: #74818a;
+    --gold: #dec989;
+    --gold-bright: #f0dba6;
+    --gold-dim: #8a6d28;
+    --docx: #4b69ff;
+    --pdf: #eb4b4b;
+    --slot-w: 220px;
+    --slot-h: 170px;
+    --slot-gap: 14px;
+    --panel-alpha: 0.36;
+    --reel-alpha: 0.36;
+  }
+
+  * { box-sizing: border-box; }
+  html { scrollbar-gutter: stable; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100%;
+  }
+
+  body {
+    background:
+      linear-gradient(#18242edf, #25323dd9),
+      radial-gradient(ellipse 1100px 560px at 50% -8%, #dec98912, transparent),
+      repeating-linear-gradient(135deg, #0000 0 26px, #ffffff02 26px 27px),
+      var(--bg-deep);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  .drift-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .drift-item {
+    position: absolute;
+    white-space: nowrap;
+    opacity: 0.9;
+    will-change: transform;
+    animation: driftAcross linear infinite;
+    animation-play-state: running !important;
+  }
+
+  .drift-item.text-item {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #4ade80ff;
+    text-shadow: 0 0 14px #4ade8055;
+  }
+
+  .drift-item.image-item {
+    width: 150px;
+    height: auto;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
+    opacity: 0.8;
+    border-radius: 8px;
+  }
+
+  @keyframes driftAcross {
+    from { transform: translate3d(var(--from-x, -30vw), var(--from-y, 0), 0) rotate(var(--rot, -18deg)); }
+    to   { transform: translate3d(var(--to-x, 130vw), var(--to-y, 0), 0) rotate(var(--rot, -18deg)); }
+  }
+
+  .wrap, header, .site-shell { position: relative; z-index: 1; }
+
+  @media (max-width: 640px) {
+    .drift-item.text-item { font-size: 12px; }
+    .drift-item.image-item { width: 90px; }
+  }
+
+  .wrap {
+    max-width: 1050px;
+    margin: 0 auto;
+    padding: 28px 20px 70px;
+  }
+
+  .progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: rgba(20, 31, 43, var(--panel-alpha));
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+  }
+
+  .progress-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 35% 30%, #35424c, #1b252c);
+    border: 1px solid var(--border);
+    font-size: 20px;
+  }
+
+  .progress-mid { flex: 1; min-width: 0; }
+
+  .progress-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 7px;
+    gap: 10px;
+  }
+
+  .progress-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .progress-count {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+
+  .progress-track {
+    height: 7px;
+    border-radius: 99px;
+    background: #0d151a;
+    border: 1px solid var(--border-soft);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .progress-sub {
+    font-size: 11.5px;
+    color: var(--text-dimmer);
+    margin-top: 6px;
+  }
+
+  .progress-right {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--gold-dim);
+    background: #1d2932b8;
+    color: var(--gold-bright);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+
+  .intro { margin: 18px 4px 16px; }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 6px;
+    font-weight: 700;
+  }
+  h1 {
+    font-size: 27px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-size: 13.5px;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  .local-counter {
+    text-align: center;
+    margin: 14px 0 6px;
+    color: #abb8c2;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+  }
+  .local-counter strong {
+    font-weight: 600;
+    color: var(--gold-bright);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .case-panel {
+    margin-top: 10px;
+    background: linear-gradient(180deg, rgba(34, 48, 58, var(--panel-alpha)), rgba(27, 39, 49, var(--panel-alpha)));
+    border: 1px solid #dec98944;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow:
+      0 24px 70px -28px rgba(0, 0, 0, 0.65),
+      0 0 0 1px #dec98914,
+      0 0 50px -12px #dec98933,
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .reel-window {
+    position: relative;
+    height: 220px;
+    padding: 25px 0;
+    overflow: clip;
+    border-radius: 10px;
+    background: rgba(13, 21, 26, var(--reel-alpha));
+    border: 1px solid #dec98930;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.55), 0 0 30px -10px #dec98940;
+    contain: layout paint;
+  }
+
+  .selector-line {
+    position: absolute;
+    left: 50%;
+    top: 23px;
+    bottom: 23px;
+    width: 3px;
+    background: var(--gold);
+    transform: translateX(-50%);
+    z-index: 4;
+    box-shadow: 0 0 16px #dec98977, 0 0 2px #fff8;
+    border-radius: 3px;
+  }
+
+  .reel-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 110px;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .reel-fade.left { left: 0; background: linear-gradient(90deg, #0d151a 18%, transparent); }
+  .reel-fade.right { right: 0; background: linear-gradient(270deg, #0d151a 18%, transparent); }
+
+  .reel-track {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: var(--slot-h);
+    transform: translate3d(-400px, 0, 0);
+    will-change: transform;
+  }
+
+  .food-card {
+    position: absolute;
+    top: 0;
+    width: var(--slot-w);
+    height: var(--slot-h);
+    background-color: rgba(32, 43, 52, 0.26);
+    border-bottom: 3px solid var(--rarity, var(--gold-dim));
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  .food-card .tier {
+    position: absolute;
+    top: 9px;
+    left: 9px;
+    z-index: 2;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #0b0f12;
+    background: var(--rarity, var(--gold));
+    padding: 3px 7px;
+    border-radius: 4px;
+  }
+
+  .doc-icon-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .doc-icon {
+    width: 58px;
+    height: 68px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.6);
+  }
+  .doc-icon.docx { background: linear-gradient(160deg, #5b7dff, var(--docx)); color: #e8efff; }
+  .doc-icon.pdf { background: linear-gradient(160deg, #f05f55, var(--pdf)); color: #ffe9e6; }
+
+  .card-copy {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    min-height: 40px;
+    padding: 7px 10px;
+    background: linear-gradient(transparent, #18232bdd 32%);
+    text-align: center;
+  }
+
+  .card-copy strong {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-shadow: 0 1px 3px #000;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .food-card.winner-highlight {
+    animation: winnerPulse 0.55s ease-out;
+  }
+  .food-card.winner-highlight .tier {
+    box-shadow: 0 0 14px var(--rarity);
+  }
+
+  @keyframes winnerPulse {
+    0% { filter: brightness(1); }
+    35% { filter: brightness(1.45); }
+    100% { filter: brightness(1); }
+  }
+
+  .control-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .control-bar { justify-content: center; }
+
+  .open-button {
+    appearance: none;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color: #241a05;
+    font-size: 14.5px;
+    font-weight: 700;
+    padding: 13px 28px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.2s ease, filter 0.15s ease;
+    box-shadow: 0 10px 26px -10px #dec98955;
+    letter-spacing: 0.01em;
+  }
+  .open-button:hover:not(:disabled) {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 30px -8px #dec989aa, 0 0 24px -4px #dec989cc;
+  }
+  .open-button:active:not(:disabled) { transform: scale(0.97); }
+  .open-button:disabled {
+    background: #30372b;
+    color: #767158;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .open-button svg { flex-shrink: 0; }
+
+  .status {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    min-height: 16px;
+    margin-top: 10px;
+    text-align: center;
+  }
+  .error-text { color: #e8846b; }
+
+  .winner-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0c1116d9;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .winner-overlay.show { display: flex; }
+  .winner-overlay.visible { opacity: 1; }
+
+  .winner-dialog {
+    width: min(480px, 100%);
+    background: linear-gradient(180deg, #1f2d38f5, #35454feb);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    transform: scale(0.94) translateY(8px);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .winner-overlay.visible .winner-dialog { transform: scale(1) translateY(0); }
+
+  .winner-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #b6c2ca;
+  }
+  .winner-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 4px 0;
+    word-break: break-word;
+  }
+  .winner-description {
+    font-size: 13.5px;
+    color: #aebbc5;
+    margin: 0;
+  }
+
+  .winner-art {
+    margin: 22px 0;
+    width: min(200px, 60vw);
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse, color-mix(in srgb, var(--rarity, var(--gold)), transparent 65%), transparent 68%);
+    border-bottom: 3px solid var(--rarity, var(--gold));
+    border-radius: 8px;
+  }
+  .winner-art .doc-icon {
+    width: 86px;
+    height: 100px;
+    font-size: 18px;
+    animation: reveal 0.7s ease-out;
+  }
+  @keyframes reveal {
+    0% { transform: scale(0.6) rotate(-6deg); opacity: 0; }
+    60% { transform: scale(1.08) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); }
+  }
+
+  .winner-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+    padding-top: 20px;
+    border-top: 1px solid #ffffff25;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .winner-actions a,
+  .winner-actions button {
+    appearance: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 11px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .open-link {
+    background: var(--gold);
+    border: 1px solid var(--gold);
+    color: #241a05;
+  }
+  .open-link:hover { filter: brightness(1.08); }
+
+  .continue-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .continue-btn:hover { background: #ffffff10; }
+
+  @media (max-width: 640px) {
+    .progress-bar { flex-wrap: wrap; }
+    .progress-right { width: 100%; justify-content: center; }
+    .control-bar { flex-direction: column; align-items: stretch; }
+    .filters { justify-content: space-between; }
+    .open-button { width: 100%; }
+    :root { --slot-w: 150px; --slot-h: 150px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reel-track { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="drift-layer" id="drift-layer" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <div class="progress-bar">
+    <div class="progress-icon">📂</div>
+    <div class="progress-mid">
+      <div class="progress-top-row">
+        <span class="progress-title">Số lượng tài liệu hiện tại</span>
+        <span class="progress-count" id="progress-count">— tài liệu</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <p class="progress-sub">Mỗi lượt mở hòm trả về một tài liệu bất kỳ trong thư mục SPOC.</p>
+    </div>
+  </div>
+
+  <div class="intro">
+    <p class="eyebrow">SPOC</p>
+    <h1>Quay số trúng đề</h1>
+    <p class="subtitle">Quay để nhận ngẫu nhiên một tài liệu trong SPOC.</p>
+  </div>
+
+  <p class="local-counter" id="local-counter" style="display:none;">Bạn đã mở <strong id="local-count-num">0</strong> hòm trên trình duyệt này</p>
+
+  <section class="case-panel">
+    <div class="reel-window" id="reel-window">
+      <div class="selector-line"></div>
+      <div class="reel-track" id="reel-track"></div>
+      <div class="reel-fade left"></div>
+      <div class="reel-fade right"></div>
+    </div>
+
+    <div class="control-bar">
+      <button class="open-button" id="open-btn" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 8.5L12 3 3 8.5M21 8.5L12 14M21 8.5V17L12 22M12 14L3 8.5M12 14V22M3 8.5V17L12 22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="open-btn-text">Đang tải...</span>
+      </button>
+    </div>
+    <p class="status" id="status-text"></p>
+  </section>
+</div>
+
+<div class="winner-overlay" id="winner-overlay">
+  <div class="winner-dialog">
+    <span class="winner-label">Trúng jackpot rồi!</span>
+    <h2 class="winner-title" id="winner-title"></h2>
+    <p class="winner-description" id="winner-desc"></p>
+    <div class="winner-art" id="winner-art" style="--rarity: var(--gold);">
+      <div class="doc-icon" id="winner-icon">PDF</div>
+    </div>
+    <div class="winner-actions">
+      <a class="open-link" id="winner-link" href="#" target="_blank" rel="noopener">
+        Mở file
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <button class="continue-btn" id="winner-continue">Tiếp tục</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const JUST_A_NORMAL_LINK = "https://script.google.com/macros/s/AKfycbxqeSHkjGMUVpUYzWKnsk7epB4zV3VQD0wU3JxA9ZiT-ivc1pcnx5c8SFLuZZNevPz-/exec";
+  const NOTHING_HERE = "806f239e-0a9f-4e9a-8b07-88835bf8b98c4e990e1edbeb408d962c2ac669d75dff";
+
+  const openBtn = document.getElementById("open-btn");
+  const openBtnText = document.getElementById("open-btn-text");
+  const statusText = document.getElementById("status-text");
+  const reelTrack = document.getElementById("reel-track");
+  const reelWindow = document.getElementById("reel-window");
+  const progressFill = document.getElementById("progress-fill");
+  const progressCount = document.getElementById("progress-count");
+  const localCounterEl = document.getElementById("local-counter");
+  const localCountNum = document.getElementById("local-count-num");
+
+  const winnerOverlay = document.getElementById("winner-overlay");
+  const winnerTitle = document.getElementById("winner-title");
+  const winnerDesc = document.getElementById("winner-desc");
+  const winnerArt = document.getElementById("winner-art");
+  const winnerIcon = document.getElementById("winner-icon");
+  const winnerLink = document.getElementById("winner-link");
+  const winnerContinue = document.getElementById("winner-continue");
+
+  const RARITY = { docx: "#4b69ff", pdf: "#eb4b4b" };
+  const SLOT_W = 220;
+  const SLOT_GAP = 14;
+  const STEP = SLOT_W + SLOT_GAP;
+
+  let isSpinning = false;
+  let cachedItems = null;
+  let slotSeq = 0;
+  let position = -400;
+
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (e) { audioCtx = null; }
+    }
+    return audioCtx;
+  }
+  function unlockAudio() {
+    const ctx = getAudioCtx();
+    if (ctx && ctx.state === "suspended") ctx.resume();
+  }
+  function playTick(volume) {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.value = 1200;
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.05);
+  }
+  function playOpenSound() {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(140, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 0.25);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.3);
+  }
+  function playWinSound() {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    [880, 1108, 1320].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const startAt = ctx.currentTime + i * 0.09;
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(0.14, startAt + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.35);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(startAt); osc.stop(startAt + 0.4);
+    });
+  }
+
+  function getLocalSpinCount() {
+    try { return parseInt(localStorage.getItem("spoc_local_spins") || "0", 10) || 0; }
+    catch (e) { return 0; }
+  }
+  function bumpLocalSpinCount() {
+    try {
+      const n = getLocalSpinCount() + 1;
+      localStorage.setItem("spoc_local_spins", String(n));
+      localCountNum.textContent = new Intl.NumberFormat("vi-VN").format(n);
+      localCounterEl.style.display = "block";
+    } catch (e) {}
+  }
+
+  function extOf(name) {
+    const lower = name.toLowerCase();
+    if (lower.endsWith(".pdf")) return "pdf";
+    return "docx";
+  }
+  function baseName(name) { return name.replace(/\.(docx|pdf)$/i, ""); }
+  function escapeHtml(str) {
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+  function setStatus(msg, isError) {
+    statusText.textContent = msg;
+    statusText.className = "status" + (isError ? " error-text" : "");
+  }
+
+  function makeCardEl(name, slotIndex) {
+    const ext = extOf(name);
+    const div = document.createElement("div");
+    div.className = "food-card";
+    div.style.setProperty("--rarity", RARITY[ext]);
+    div.style.left = (slotIndex * STEP) + "px";
+    div.innerHTML =
+      '<span class="tier">' + ext.toUpperCase() + '</span>' +
+      '<div class="doc-icon-wrap"><div class="doc-icon ' + ext + '">' + ext.toUpperCase() + '</div></div>' +
+      '<div class="card-copy"><strong>' + escapeHtml(baseName(name)) + '</strong></div>';
+    return div;
+  }
+
+  function renderStaticReel(items) {
+    reelTrack.innerHTML = "";
+    position = -400;
+    reelTrack.style.transition = "none";
+    reelTrack.style.transform = "translate3d(" + position + "px,0,0)";
+    slotSeq = 0;
+    const need = Math.ceil((reelWindow.clientWidth || 1000) / STEP) + 6;
+    for (let i = 0; i < need; i++) {
+      const name = items[i % items.length].name;
+      reelTrack.appendChild(makeCardEl(name, slotSeq));
+      slotSeq++;
+    }
+  }
+
+  function spinEase(t) {
+    if (t >= 1) return 1;
+    return 1 - Math.pow(2, -7 * t);
+  }
+
+  function preloadList() {
+    setStatus("Đang tải danh sách tài liệu...", false);
+    return fetch(JUST_A_NORMAL_LINK + "?action=list&token=" + encodeURIComponent(NOTHING_HERE))
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) { setStatus(data.error, true); return; }
+        cachedItems = data.items;
+        progressCount.textContent = cachedItems.length + " tài liệu";
+        progressFill.style.width = "100%";
+        renderStaticReel(cachedItems);
+        setStatus("Sẵn sàng. Bấm \"Nắc\" để quay.", false);
+        isSpinning = false;
+        openBtn.disabled = false;
+        openBtnText.textContent = "Nắc";
+        const localCount = getLocalSpinCount();
+        if (localCount > 0) {
+          localCountNum.textContent = new Intl.NumberFormat("vi-VN").format(localCount);
+          localCounterEl.style.display = "block";
+        }
+      })
+      .catch(() => setStatus("Không kết nối được máy chủ. Tải lại trang để thử lại.", true));
+  }
+
+  function openCase() {
+    if (isSpinning || !cachedItems) return;
+    isSpinning = true;
+    unlockAudio();
+
+    openBtn.disabled = true;
+    openBtnText.textContent = "Đang quay...";
+    setStatus("Đang quay...", false);
+    playOpenSound();
+
+    fetch(JUST_A_NORMAL_LINK + "?action=list&token=" + encodeURIComponent(NOTHING_HERE))
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) { throw new Error(data.error); }
+        runSpin(data.items, data.winnerName, data.ticket);
+      })
+      .catch(err => {
+        setStatus(err.message || "Không kết nối được máy chủ. Thử lại sau.", true);
+        isSpinning = false;
+        openBtn.disabled = false;
+        openBtnText.textContent = "Nắc";
+      });
+  }
+
+  function runSpin(items, winnerName, ticket) {
+    const windowWidth = reelWindow.clientWidth || 1000;
+    const visibleSlots = Math.ceil(windowWidth / STEP) + 2;
+    const travelSlots = 34 + Math.floor(Math.random() * 10);
+
+    const startPos = position;
+    const startSlot = slotSeq;
+    const winnerSlotIndex = startSlot + travelSlots;
+
+    const buildUntil = winnerSlotIndex + visibleSlots;
+    for (let idx = slotSeq; idx <= buildUntil; idx++) {
+      const name = idx === winnerSlotIndex ? winnerName : items[Math.floor(Math.random() * items.length)].name;
+      reelTrack.appendChild(makeCardEl(name, idx));
+      if (idx === winnerSlotIndex) {
+        reelTrack.lastChild.dataset.winner = "1";
+      }
+    }
+    slotSeq = buildUntil + 1;
+
+    const jitter = (Math.random() - 0.5) * (SLOT_W * 0.4);
+    const winnerCenterWorld = winnerSlotIndex * STEP + SLOT_W / 2;
+    const endPos = windowWidth / 2 - winnerCenterWorld + jitter;
+
+    const duration = 6800;
+    const started = performance.now();
+    let lastTickSlot = Math.floor((-startPos) / STEP);
+
+    function frame(now) {
+      const progress = Math.max(0, Math.min(1, (now - started) / duration));
+      const eased = spinEase(progress);
+      const next = startPos + (endPos - startPos) * eased;
+      position = next;
+      reelTrack.style.transition = "none";
+      reelTrack.style.transform = "translate3d(" + next + "px,0,0)";
+
+      const currentSlot = Math.floor((-next) / STEP);
+      if (currentSlot !== lastTickSlot) {
+        const remaining = 1 - progress;
+        playTick(0.05 * Math.max(0.15, remaining));
+        lastTickSlot = currentSlot;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        position = endPos;
+        reelTrack.style.transform = "translate3d(" + endPos + "px,0,0)";
+        finishSpin(ticket);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function finishSpin(ticket) {
+    const winnerEl = reelTrack.querySelector('[data-winner="1"]');
+    if (winnerEl) winnerEl.classList.add("winner-highlight");
+    playWinSound();
+    bumpLocalSpinCount();
+
+    const windowWidth = reelWindow.clientWidth || 1000;
+    const cutoff = -position - windowWidth;
+    Array.from(reelTrack.children).forEach(child => {
+      const left = parseFloat(child.style.left || "0");
+      if (left + SLOT_W < cutoff) child.remove();
+    });
+
+    setStatus("Đang lấy quà...", false);
+
+    fetch(JUST_A_NORMAL_LINK + "?action=reveal&ticket=" + encodeURIComponent(ticket) + "&token=" + encodeURIComponent(NOTHING_HERE))
+      .then(res => res.json())
+      .then(reveal => {
+        if (reveal.error) throw new Error(reveal.error);
+        showWinnerDialog(reveal);
+        isSpinning = false;
+        openBtn.disabled = false;
+        openBtnText.textContent = "Nắc lần nữa";
+        setStatus("Nắc thành công.", false);
+      })
+      .catch(err => {
+        setStatus(err.message || "Không lấy được link file. Thử lại.", true);
+        isSpinning = false;
+        openBtn.disabled = false;
+        openBtnText.textContent = "Nắc";
+      });
+  }
+
+  function showWinnerDialog(reveal) {
+    const ext = extOf(reveal.name);
+    winnerArt.style.setProperty("--rarity", RARITY[ext]);
+    winnerIcon.textContent = ext.toUpperCase();
+    winnerIcon.className = "doc-icon " + ext;
+    winnerTitle.textContent = baseName(reveal.name);
+    winnerDesc.textContent = ext === "pdf" ? "Tệp PDF" : "Tệp Word (.docx)";
+    winnerLink.href = reveal.url;
+
+    winnerOverlay.classList.add("show");
+    requestAnimationFrame(() => winnerOverlay.classList.add("visible"));
+  }
+
+  function closeWinnerDialog() {
+    winnerOverlay.classList.remove("visible");
+    setTimeout(() => winnerOverlay.classList.remove("show"), 250);
+  }
+
+  openBtn.addEventListener("click", openCase);
+  winnerContinue.addEventListener("click", closeWinnerDialog);
+  winnerOverlay.addEventListener("click", (e) => { if (e.target === winnerOverlay) closeWinnerDialog(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeWinnerDialog(); });
+
+  window.addEventListener("resize", () => {
+    if (!isSpinning && cachedItems) renderStaticReel(cachedItems);
+  });
+
+  function initDriftLayer() {
+    const layer = document.getElementById("drift-layer");
+    if (!layer) return;
+
+    const messages = [
+      "SPOC is number one",
+      "Chúc bạn có một ngày BÌNH AN",
+      "Web tặng anh Khương",
+      "Tích cực nắc đề, vàng IPHO sẽ đến",
+      "AN là một con chó",
+      "Kiwi rất ngon"
+    ];
+
+    const items = [];
+    messages.forEach((msg, i) => {
+      items.push({ type: "text", content: msg, delay: i * -9, duration: 26 + i * 4, laneY: 12 + i * 26 });
+    });
+    items.push({ type: "image", src: "DogAN.png", delay: -14, duration: 30, laneY: 60 });
+
+    items.forEach(item => {
+      const el = document.createElement(item.type === "image" ? "img" : "div");
+      el.className = "drift-item " + (item.type === "image" ? "image-item" : "text-item");
+      if (item.type === "image") {
+        el.src = item.src;
+        el.alt = "";
+        el.onerror = () => { console.error("Không tải được ảnh nền:", el.src); el.remove(); };
+      } else {
+        el.textContent = item.content;
+      }
+      el.style.top = item.laneY + "%";
+      el.style.setProperty("--rot", (-16 - Math.random() * 6) + "deg");
+      el.style.animationDuration = item.duration + "s";
+      el.style.animationDelay = item.delay + "s";
+      layer.appendChild(el);
+    });
+  }
+
+  preloadList();
+
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(initDriftLayer, { timeout: 1500 });
+  } else {
+    setTimeout(initDriftLayer, 200);
+  }
+</script>
+</body>
+</html>
