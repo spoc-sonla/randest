@@ -1,11 +1,21 @@
-let cache = { at: 0, files: null };
+let cache = { at: 0, lines: null };
+let namesCache = { at: 0, text: null };
 
-async function getFiles(env) {
+async function getLines(env) {
   const now = Date.now();
-  if (cache.files && now - cache.at < 60000) return cache.files;
-  const files = await env.FILES.get("files", { type: "json" });
-  if (files) cache = { at: now, files: files };
-  return files;
+  if (cache.lines && now - cache.at < 60000) return cache.lines;
+  const text = await env.FILES.get("files_txt");
+  if (!text) return null;
+  cache = { at: now, lines: text.split("\n") };
+  return cache.lines;
+}
+
+async function getNames(env) {
+  const now = Date.now();
+  if (namesCache.text && now - namesCache.at < 60000) return namesCache.text;
+  const text = await env.FILES.get("names_json");
+  if (text) namesCache = { at: now, text: text };
+  return text;
 }
 
 function json(obj, status, headers) {
@@ -13,14 +23,6 @@ function json(obj, status, headers) {
     status: status || 200,
     headers: Object.assign({ "Content-Type": "application/json; charset=utf-8" }, headers)
   });
-}
-
-function validFiles(files) {
-  if (!Array.isArray(files) || files.length === 0) return false;
-  for (const f of files) {
-    if (!f || typeof f.n !== "string" || typeof f.u !== "string") return false;
-  }
-  return true;
 }
 
 export default {
@@ -38,38 +40,45 @@ export default {
       if (request.headers.get("Authorization") !== "Bearer " + env.ADMIN_SECRET) {
         return json({ error: "Unauthorized" }, 401, cors);
       }
-      let files;
-      try {
-        files = await request.json();
-      } catch (e) {
-        return json({ error: "Bad payload" }, 400, cors);
-      }
-      if (!validFiles(files)) return json({ error: "Bad payload" }, 400, cors);
-      await env.FILES.put("files", JSON.stringify(files));
-      cache = { at: 0, files: null };
-      return json({ ok: true, count: files.length }, 200, cors);
+      const key = url.searchParams.get("key");
+      const kvKey = key === "files" ? "files_txt" : key === "names" ? "names_json" : null;
+      if (!kvKey) return json({ error: "Bad key" }, 400, cors);
+      const body = await request.text();
+      if (!body || body.length < 2) return json({ error: "Empty body" }, 400, cors);
+      if (kvKey === "names_json" && body.charAt(0) !== "{") return json({ error: "Bad payload" }, 400, cors);
+      await env.FILES.put(kvKey, body);
+      cache = { at: 0, lines: null };
+      namesCache = { at: 0, text: null };
+      return json({ ok: true, key: key, bytes: body.length }, 200, cors);
     }
-
-    const files = await getFiles(env);
-    if (!files || files.length === 0) return json({ error: "Chưa có dữ liệu" }, 503, cors);
 
     const action = url.searchParams.get("action");
 
     if (action === "list") {
-      return json(
-        { items: files.map(f => ({ name: f.n })) },
-        200,
-        Object.assign({ "Cache-Control": "public, max-age=60" }, cors)
-      );
+      const text = await getNames(env);
+      if (!text) return json({ error: "Chưa có dữ liệu" }, 503, cors);
+      return new Response(text, {
+        status: 200,
+        headers: Object.assign({ "Content-Type": "application/json; charset=utf-8", "Cache-Control": "public, max-age=60" }, cors)
+      });
     }
 
     if (action === "spin") {
-      const f = files[crypto.getRandomValues(new Uint32Array(1))[0] % files.length];
-      return json(
-        { winnerName: f.n, name: f.n, url: f.u },
-        200,
-        Object.assign({ "Cache-Control": "no-store" }, cors)
-      );
+      const lines = await getLines(env);
+      if (!lines || lines.length === 0) return json({ error: "Chưa có dữ liệu" }, 503, cors);
+      for (let tries = 0; tries < 5; tries++) {
+        const line = lines[crypto.getRandomValues(new Uint32Array(1))[0] % lines.length];
+        const tab = line.indexOf("\t");
+        if (tab > 0) {
+          const name = line.slice(0, tab);
+          return json(
+            { winnerName: name, name: name, url: line.slice(tab + 1) },
+            200,
+            Object.assign({ "Cache-Control": "no-store" }, cors)
+          );
+        }
+      }
+      return json({ error: "Dữ liệu lỗi" }, 500, cors);
     }
 
     return json("Ở đây không có gì đâu", 400, cors);
